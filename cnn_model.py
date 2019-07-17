@@ -259,12 +259,6 @@ class CNN4(nn.Module):
         )
             
         self.linear_2 = nn.Sequential(      
-            nn.Linear(SCI_L_SECOND*24, SCI_L_SECOND, bias=SCI_BIAS),
-            nn.ReLU(SCI_RELU), 
-            nn.Dropout(p = SCI_DROPOUT),
-            nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS),
-            nn.ReLU(SCI_RELU), 
-            nn.Dropout(p = SCI_DROPOUT),
             nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS),
             nn.ReLU(SCI_RELU), 
             nn.Dropout(p = SCI_DROPOUT),
@@ -278,4 +272,50 @@ class CNN4(nn.Module):
         x2 = x1.view(x1.size(0), -1)
         output = self.linear_2(x2)
         return output, x    
+    
+    
+class CNN5(nn.Module):
+    def __init__(self,L_FIRST, SCI_L_SECOND, KERNEL_X, SCI_BIAS, SCI_BN_MOMENTUM, SCI_RELU, SCI_DROPOUT, CLASSES):
+        super(CNN5, self).__init__()
+         
+        self.linear_1 = nn.Sequential(                  
+            nn.Conv2d(L_FIRST, SCI_L_SECOND,1, bias=SCI_BIAS),
+            nn.ReLU(SCI_RELU), 
+            nn.Dropout(p = SCI_DROPOUT),
+        )
+            
+        self.linear_2 = nn.Sequential(      
+            nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS),
+            nn.ReLU(SCI_RELU), 
+            nn.Dropout(p = SCI_DROPOUT),
+            nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS),
+            nn.ReLU(SCI_RELU), 
+            nn.Dropout(p = SCI_DROPOUT),            
+            nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS),
+            nn.ReLU(SCI_RELU), 
+            nn.Dropout(p = SCI_DROPOUT),            
+            nn.Linear(SCI_L_SECOND, CLASSES, bias=SCI_BIAS),
+            nn.LogSoftmax(1)
+        )  
+        
+
+    def forward(self, x): 
+        x1 = self.linear_1(x)
+        x2 = x1.view(x1.size(0), -1)
+        output = self.linear_2(x2)
+        return output, x   
+    
+    def weights_init(m):
+        if isinstance(m, nn.Conv2d):
+            torch.nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                torch.nn.init.zeros_(m.bias)
+        if isinstance(m, nn.Linear):
+            torch.nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                torch.nn.init.zeros_(m.bias)        
+          
+    def weights_reset(m):
+        if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+            m.reset_parameters()
     
