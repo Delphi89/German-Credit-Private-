@@ -339,14 +339,28 @@ class CNN6(nn.Module):
             nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
             #nn.Dropout(p = SCI_DROPOUT),
         ).to('cuda:1')        
+        
+        self.linear_21 = nn.Sequential(                  
+            nn.Conv2d(SCI_L_SECOND, SCI_L_SECOND,1, bias=SCI_BIAS),
+            nn.ReLU(SCI_RELU), 
+            #nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
+            nn.Dropout(p = SCI_DROPOUT),
+        ).to('cuda:1')  
+        
+        self.linear_22 = nn.Sequential(   
+            nn.Conv2d(L_FIRST, SCI_L_SECOND,1, bias=SCI_BIAS),
+            nn.ReLU(SCI_RELU), 
+            nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
+            
+            nn.Conv2d(SCI_L_SECOND, SCI_L_SECOND,1, bias=SCI_BIAS),
+            nn.ReLU(SCI_RELU), 
+            nn.Dropout(p = SCI_DROPOUT),
+        ).to('cuda:1')   
+
             
         self.linear_3 = nn.Sequential(      
-            #nn.Conv2d(SCI_L_SECOND, SCI_L_SECOND,1, bias=SCI_BIAS),
-            #nn.ReLU(SCI_RELU), 
-            #nn.Dropout(p = SCI_DROPOUT),
             nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS),
-            nn.ReLU(SCI_RELU), 
-            #nn.Dropout(p = SCI_DROPOUT),            
+            nn.ReLU(SCI_RELU),       
             nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS),
             nn.ReLU(SCI_RELU), 
             nn.Dropout(p = SCI_DROPOUT),            
@@ -357,7 +371,7 @@ class CNN6(nn.Module):
 
     def forward(self, x): 
         x1 = self.linear_1(x) 
-        x2 = self.linear_2(x1)
+        x2 = self.linear_2(x1) + self.linear_21(x1) + self.linear_22(x)
         x3 = x2.view(x1.size(0), -1)
         output = self.linear_3(x3)
         return output, x   

@@ -13,9 +13,9 @@ class dataset:
 
     CLASSES = 2
     TRAIN_SIZE = 256
-    VALIDATION_SIZE = 90
-    TEST_SIZE = 654
-    TESTED_ELEMENTS = torch.tensor([527,127]).type(torch.FloatTensor) 
+    VALIDATION_SIZE = 144
+    TEST_SIZE = 599
+    TESTED_ELEMENTS = torch.tensor([499,100]).type(torch.FloatTensor) 
     TEST_RESULTS = torch.zeros(1,2)
     LAST_DATA_ELEMENT = 24
     file = ['train6.csv','validate6.csv','test6.csv']
