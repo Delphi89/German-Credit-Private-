@@ -6,7 +6,7 @@
 
 class Utillities:
 
-    def listing(optimizer, SCI_SGD_MOMENTUM, SCI_BN_MOMENTUM, SCI_L_SECOND, SCI_LR, SCI_RELU, SCI_BIAS, SCI_loss_type, REGULARIZATION, SCI_BATCH_SIZE, SCI_DROPOUT):
+    def listing(optimizer, SCI_SGD_MOMENTUM, SCI_BN_MOMENTUM, SCI_L_SECOND, SCI_LR, SCI_RELU, SCI_BIAS, SCI_loss_type, REGULARIZATION, SCI_BATCH_SIZE, SCI_DROPOUT, SCI_LINEARITY):
         print('Optimization: ', optimizer)
         if optimizer == 'SGD':
             print('MM: ',SCI_SGD_MOMENTUM)
@@ -19,4 +19,7 @@ class Utillities:
         print('REGULARIZATION: ', REGULARIZATION)    
         print('BATCH_SIZE: ', SCI_BATCH_SIZE)
         print('Dropout: ', SCI_DROPOUT)
+        print('Final Linear Layers: ', SCI_LINEARITY)
+        
+        
 

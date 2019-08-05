@@ -323,27 +323,24 @@ class CNN5(nn.Module):
     
     
 class CNN6(nn.Module):
-    def __init__(self,L_FIRST, SCI_L_SECOND, KERNEL_X, SCI_BIAS, SCI_BN_MOMENTUM, SCI_RELU, SCI_DROPOUT, CLASSES):
+    def __init__(self,L_FIRST, SCI_L_SECOND, KERNEL_X, SCI_BIAS, SCI_BN_MOMENTUM, SCI_RELU, SCI_DROPOUT, CLASSES, LINEARITY):
         super(CNN6, self).__init__()
          
         self.linear_1 = nn.Sequential(                  
             nn.Conv2d(L_FIRST, SCI_L_SECOND,1, bias=SCI_BIAS),
             nn.ReLU(SCI_RELU), 
             nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
-            #nn.Dropout(p = SCI_DROPOUT),
         ).to('cuda:1')
         
         self.linear_2 = nn.Sequential(                  
             nn.Conv2d(SCI_L_SECOND, SCI_L_SECOND,1, bias=SCI_BIAS),
             nn.ReLU(SCI_RELU), 
             nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
-            #nn.Dropout(p = SCI_DROPOUT),
         ).to('cuda:1')        
         
         self.linear_21 = nn.Sequential(                  
             nn.Conv2d(SCI_L_SECOND, SCI_L_SECOND,1, bias=SCI_BIAS),
             nn.ReLU(SCI_RELU), 
-            #nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
             nn.Dropout(p = SCI_DROPOUT),
         ).to('cuda:1')  
         
@@ -356,24 +353,33 @@ class CNN6(nn.Module):
             nn.ReLU(SCI_RELU), 
             nn.Dropout(p = SCI_DROPOUT),
         ).to('cuda:1')   
-
-            
-        self.linear_3 = nn.Sequential(      
+        
+  
+        self.linear_23 = nn.Sequential(      
             nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS),
             nn.ReLU(SCI_RELU),       
-            nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS),
-            nn.ReLU(SCI_RELU), 
-            nn.Dropout(p = SCI_DROPOUT),            
+        ).to('cuda:1')
+
+            
+        self.linear_3 = nn.Sequential(
+            #if (LINEARITY == 1) nn.Dropout(p = SCI_DROPOUT),
+            #nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS)
+            #nn.ReLU(SCI_RELU),       
+            #nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS),
+            #nn.ReLU(SCI_RELU), 
             nn.Linear(SCI_L_SECOND, CLASSES, bias=SCI_BIAS),
-            nn.LogSoftmax(1)
+            nn.LogSoftmax(0)
         ).to('cuda:1')
         
 
     def forward(self, x): 
         x1 = self.linear_1(x) 
         x2 = self.linear_2(x1) + self.linear_21(x1) + self.linear_22(x)
-        x3 = x2.view(x1.size(0), -1)
-        output = self.linear_3(x3)
+        x3 = x2.view(x2.size(0), -1)
+        x4 = x1.view(x1.size(0), -1)
+        x5 = self.linear_23(x4) 
+        x6 = x3 + x5
+        output = self.linear_3(x6)
         return output, x   
     
     def weights_init(m):
