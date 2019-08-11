@@ -328,14 +328,14 @@ class CNN6(nn.Module):
          
         self.linear_1 = nn.Sequential(                  
             nn.Conv2d(L_FIRST, SCI_L_SECOND,1, bias=SCI_BIAS),
-            nn.ReLU(SCI_RELU), 
-            nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
+            #nn.ReLU(SCI_RELU), 
+            #nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
         ).to('cuda:1')
         
         self.linear_2 = nn.Sequential(                  
             nn.Conv2d(SCI_L_SECOND, SCI_L_SECOND,1, bias=SCI_BIAS),
             nn.ReLU(SCI_RELU), 
-            nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
+            #nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
         ).to('cuda:1')        
         
         self.linear_21 = nn.Sequential(                  
@@ -347,7 +347,7 @@ class CNN6(nn.Module):
         self.linear_22 = nn.Sequential(   
             nn.Conv2d(L_FIRST, SCI_L_SECOND,1, bias=SCI_BIAS),
             nn.ReLU(SCI_RELU), 
-            nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
+            #nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
             
             nn.Conv2d(SCI_L_SECOND, SCI_L_SECOND,1, bias=SCI_BIAS),
             nn.ReLU(SCI_RELU), 
@@ -358,15 +358,11 @@ class CNN6(nn.Module):
         self.linear_23 = nn.Sequential(      
             nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS),
             nn.ReLU(SCI_RELU),       
+            #nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
         ).to('cuda:1')
 
             
         self.linear_3 = nn.Sequential(
-            #if (LINEARITY == 1) nn.Dropout(p = SCI_DROPOUT),
-            #nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS)
-            #nn.ReLU(SCI_RELU),       
-            #nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS),
-            #nn.ReLU(SCI_RELU), 
             nn.Linear(SCI_L_SECOND, CLASSES, bias=SCI_BIAS),
             nn.LogSoftmax(0)
         ).to('cuda:1')
