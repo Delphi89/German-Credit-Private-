@@ -390,4 +390,4 @@ class CNN6(nn.Module):
           
     def weights_reset(m):
         if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
-            m.reset_parameters()    
+            m.reset_parameters()  
