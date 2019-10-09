@@ -323,48 +323,49 @@ class CNN5(nn.Module):
     
     
 class CNN6(nn.Module):
-    def __init__(self,L_FIRST, SCI_L_SECOND, KERNEL_X, SCI_BIAS, SCI_BN_MOMENTUM, SCI_RELU, SCI_DROPOUT, CLASSES, LINEARITY):
+    def __init__(self,L_FIRST, SCI_L_SECOND, KERNEL_X, SCI_BIAS, SCI_BN_MOMENTUM, SCI_RELU, SCI_DROPOUT, CLASSES, LINEARITY, SCI_BN_EPS, SCI_BN_STATS):
         super(CNN6, self).__init__()
          
         self.linear_1 = nn.Sequential(                  
+            nn.BatchNorm2d(L_FIRST, eps=SCI_BN_EPS, momentum=SCI_BN_MOMENTUM, affine=True, track_running_stats=SCI_BN_STATS),
             nn.Conv2d(L_FIRST, SCI_L_SECOND,1, bias=SCI_BIAS),
-            #nn.ReLU(SCI_RELU), 
-            #nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
+            nn.LeakyReLU(negative_slope=0.2, inplace=True), 
+            nn.BatchNorm2d(SCI_L_SECOND, eps=SCI_BN_EPS, momentum=SCI_BN_MOMENTUM, affine=True, track_running_stats=SCI_BN_STATS),           
         )
         
         self.linear_2 = nn.Sequential(                  
             nn.Conv2d(SCI_L_SECOND, SCI_L_SECOND,1, bias=SCI_BIAS),
-            nn.ReLU(SCI_RELU), 
-            #nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
+            nn.LeakyReLU(negative_slope=0.2, inplace=True), 
+            nn.BatchNorm2d(SCI_L_SECOND, eps=SCI_BN_EPS, momentum=SCI_BN_MOMENTUM, affine=True, track_running_stats=SCI_BN_STATS),        
         )      
         
         self.linear_21 = nn.Sequential(                  
             nn.Conv2d(SCI_L_SECOND, SCI_L_SECOND,1, bias=SCI_BIAS),
-            nn.ReLU(SCI_RELU), 
+            nn.LeakyReLU(negative_slope=0.2, inplace=True), 
             nn.Dropout(p = SCI_DROPOUT),
         )
         
         self.linear_22 = nn.Sequential(   
             nn.Conv2d(L_FIRST, SCI_L_SECOND,1, bias=SCI_BIAS),
-            nn.ReLU(SCI_RELU), 
-            #nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
+            nn.LeakyReLU(negative_slope=0.2, inplace=True), 
+            nn.BatchNorm2d(SCI_L_SECOND, eps=SCI_BN_EPS, momentum=SCI_BN_MOMENTUM, affine=True, track_running_stats=SCI_BN_STATS),        
             
             nn.Conv2d(SCI_L_SECOND, SCI_L_SECOND,1, bias=SCI_BIAS),
-            nn.ReLU(SCI_RELU), 
+            nn.LeakyReLU(negative_slope=0.2, inplace=True), 
             nn.Dropout(p = SCI_DROPOUT),
         )
         
   
         self.linear_23 = nn.Sequential(      
             nn.Linear(SCI_L_SECOND, SCI_L_SECOND, bias=SCI_BIAS),
-            nn.ReLU(SCI_RELU),       
-            #nn.BatchNorm2d(SCI_L_SECOND, momentum = SCI_BN_MOMENTUM),
+            nn.LeakyReLU(negative_slope=0.2, inplace=True),       
         )
 
             
         self.linear_3 = nn.Sequential(
             nn.Linear(SCI_L_SECOND, CLASSES, bias=SCI_BIAS),
-            nn.LogSoftmax(0)
+            nn.Tanh(),
+            #nn.LogSoftmax(0)
         )
         
 
@@ -390,4 +391,4 @@ class CNN6(nn.Module):
           
     def weights_reset(m):
         if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
-            m.reset_parameters()    
+            m.reset_parameters()  

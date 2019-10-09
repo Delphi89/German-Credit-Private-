@@ -30,11 +30,11 @@ class Utillities:
 
         if type(SCI_optimizer) is str:
             if (SCI_optimizer == 'Adam') :
-                optimizer = optim.Adam(cnn.parameters(), lr=LR, betas=(0.9, 0.99), weight_decay=REGULARIZATION)
+                optimizer = optim.Adam(cnn.parameters(), lr=LR, betas=(0.01, 0.999), weight_decay=REGULARIZATION)
             if (SCI_optimizer == 'AMSGrad') :
-                optimizer = optim.Adam(cnn.parameters(), lr=LR, betas=(0.9, 0.99), weight_decay=REGULARIZATION, amsgrad=True)
+                optimizer = optim.Adam(cnn.parameters(), lr=LR, betas=(0.01, 0.999), weight_decay=REGULARIZATION, amsgrad=True)
             if (SCI_optimizer == 'AdamW')  :
-                optimizer = AdamW(cnn.parameters(), lr=LR, betas=(0.9, 0.99), weight_decay = REGULARIZATION)   
+                optimizer = AdamW(cnn.parameters(), lr=LR, betas=(0.01, 0.999), weight_decay = REGULARIZATION)   
             if (SCI_optimizer == 'RMSprop') :
                 optimizer = optim.RMSprop(cnn.parameters(), lr=LR)              
             #if (SCI_optimizer == 'SparseAdam') or (int(SCI_optimizer) == 4) :
@@ -55,11 +55,11 @@ class Utillities:
                 #optimizer = optim.LBFGS(cnn.parameters(), lr=LR)   
         else: 
             if (int(SCI_optimizer) == 1) :
-                optimizer = optim.Adam(cnn.parameters(), lr=LR, betas=(0.9, 0.99), weight_decay=REGULARIZATION)
+                optimizer = optim.Adam(cnn.parameters(), lr=LR, betas=(0.01, 0.999), weight_decay=REGULARIZATION)
             if (int(SCI_optimizer) == 2) :
-                optimizer = optim.Adam(cnn.parameters(), lr=LR, betas=(0.9, 0.99), weight_decay=REGULARIZATION, amsgrad=True)
+                optimizer = optim.Adam(cnn.parameters(), lr=LR, betas=(0.01, 0.999), weight_decay=REGULARIZATION, amsgrad=True)
             if (int(SCI_optimizer) == 3) :
-                optimizer = AdamW(cnn.parameters(), lr=LR, betas=(0.9, 0.99), weight_decay = REGULARIZATION)   
+                optimizer = AdamW(cnn.parameters(), lr=LR, betas=(0.01, 0.999), weight_decay = REGULARIZATION)   
             if (int(SCI_optimizer) == 4) :
                 optimizer = optim.RMSprop(cnn.parameters(), lr=LR)              
             #if (SCI_optimizer == 'SparseAdam') or (int(SCI_optimizer) == 4) :
