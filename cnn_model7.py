@@ -25,17 +25,22 @@ class CNN6(nn.Module):
                 
     def LAST_LAYER(SCI_LAST_LAYER):
         
-        if int(SCI_LAST_LAYER) == 4:
+        if int(SCI_LAST_LAYER) == 7:
             return (Swish())
-        if int(SCI_LAST_LAYER) == 3:
+        if int(SCI_LAST_LAYER) == 2:
             return (nn.Sigmoid())    
-        if int(SCI_LAST_LAYER) == 5:
+        if int(SCI_LAST_LAYER) == 8:
             return (nn.Softmax(0))
         if int(SCI_LAST_LAYER) == 1:
             return (nn.LogSoftmax(0))
-        if int(SCI_LAST_LAYER) == 2:
+        if int(SCI_LAST_LAYER) == 6:
             return (Mish.Mish())              
-            
+        if int(SCI_LAST_LAYER) == 3:
+            return (nn.Softsign())     
+        if int(SCI_LAST_LAYER) == 4:
+            return (nn.Hardtanh())   
+        if int(SCI_LAST_LAYER) == 5:
+            return (nn.Tanh())                       
        
     
     def __init__(self, L_FIRST, SCI_L_SECOND, KERNEL_X, SCI_BIAS, SCI_BN_MOMENTUM, SCI_RELU, SCI_DROPOUT, CLASSES, SCI_BN_EPS, SCI_BN_STATS, SCI_LAST_LAYER, SCI_ACT_LAYER):

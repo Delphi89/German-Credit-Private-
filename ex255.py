@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# best score: 281
+# best score: 273
 
 import torch
 import torch.nn as nn
@@ -17,7 +17,7 @@ import cProfile, pstats, io
 from pstats import SortKey
 from random import randint
 from Utillities5 import Utillities
-from cnn_model6 import CNN6     
+from cnn_model7 import CNN6     
 import matplotlib.pyplot as mp
 #import matplotlib.pyplot as plt
 
@@ -28,7 +28,7 @@ print("Torchvision Version: ",torchvision.__version__)
 if os.path.exists("checkpoint.pt"):
     os.remove("checkpoint.pt")
 
-torch.manual_seed(1)   # reproducible
+torch.manual_seed(23)   # reproducible
 
 OPTIMIZATION_PLUGIN = 'Bayesian' # 'Bayesian' or 'Scikit' or 'GradDescent'
 #Bayesian requires: $ conda install -c conda-forge bayesian-optimization
@@ -45,7 +45,7 @@ SCI_MM = 0.5                  # momentum - used only with SGD optimizer
 MM = 0.5
 L_FIRST = 24                  # initial number of channels
 KERNEL_X = 24
-patience = 30                 # if validation loss not going down, wait "patience" number of epochs
+patience = 5                 # if validation loss not going down, wait "patience" number of epochs
 accuracy = 0
 MaxCredit = -800
 
@@ -131,17 +131,38 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
         SCI_REGULARIZATION = float(str(SCI_REGULARIZATION))
     
     
+  
         if SCI_BN_EPS == 0:
             BN_EPS = 5e-6
         if SCI_BN_EPS == 1:
             BN_EPS = 1e-5
         if SCI_BN_EPS == 2:
-            BN_EPS = 1e-6
+            BN_EPS = 5e-6
         if SCI_BN_EPS == 3:
-            BN_EPS = 5e-7             
+            BN_EPS = 1e-6             
         if SCI_BN_EPS == 4:
-            BN_EPS = 1e-7            
-        print('BN Batch EPS: ', BN_EPS)     
+            BN_EPS = 5e-7     
+        if SCI_BN_EPS == 5:
+            BN_EPS = 1e-7
+        if SCI_BN_EPS == 6:
+            BN_EPS = 5e-8
+        if SCI_BN_EPS == 7:
+            BN_EPS = 1e-8
+        if SCI_BN_EPS == 8:
+            BN_EPS = 3e-7             
+        if SCI_BN_EPS == 9:
+            BN_EPS = 8e-7    
+        if SCI_BN_EPS == 10:
+            BN_EPS = 1e-4             
+        if SCI_BN_EPS == 11:
+            BN_EPS = 5e-4    
+        if SCI_BN_EPS == 12:
+            BN_EPS = 8e-6    
+        if SCI_BN_EPS == 13:
+            BN_EPS = 1e-6             
+        if SCI_BN_EPS == 14:
+            BN_EPS = 8e-5                                           
+        print('BN Batch EPS: ', BN_EPS)    
         
         SCI_BN_STATS = int(SCI_BN_STATS)
         if SCI_BN_STATS == 0:
@@ -329,16 +350,16 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
                  'SCI_BIAS': (1,1.99), 
                  'SCI_loss_type': (2, 2.99), 
                  'SCI_optimizer': (9, 9.99),
-                 'SCI_LR': (0.0002, 0.0009), 
+                 'SCI_LR': (0.00002, 0.009), 
                  'SCI_MM': (0.001, 0.999), 
                  'SCI_REGULARIZATION': (0, 0.8), 
-                 'SCI_EPOCHS': (1000, 2000), 
-                 'SCI_BATCH_SIZE': (90, 210), 
-                 'SCI_DROPOUT': (0.3, 0.7), 
-                 'SCI_L_SECOND': (64, 196), 
+                 'SCI_EPOCHS': (100, 200), 
+                 'SCI_BATCH_SIZE': (120, 190), 
+                 'SCI_DROPOUT': (0.5, 0.7), 
+                 'SCI_L_SECOND': (116, 148), 
                  'SCI_BN_MOMENTUM': (0.1, 0.1), 
                  'SCI_SGD_MOMENTUM': (0, 0.999), 
-                 'SCI_BN_EPS':(0,4.99),
+                 'SCI_BN_EPS':(0,14.99),
                  'SCI_BN_STATS':(0,0.99),
                  'SCI_LAST_LAYER':(1,1.99),
                  'SCI_ACT_LAYER':(2,2.99)
