@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# best score: 273
+# best score: 266
 
 import torch
 import torch.nn as nn
@@ -16,7 +16,7 @@ import os
 import cProfile, pstats, io
 from pstats import SortKey
 from random import randint
-from Utillities6 import Utillities
+from Utillities7 import Utillities
 from cnn_model7 import CNN6     
 import matplotlib.pyplot as mp
 #import matplotlib.pyplot as plt
@@ -45,9 +45,12 @@ SCI_MM = 0.5                  # momentum - used only with SGD optimizer
 MM = 0.5
 L_FIRST = 24                  # initial number of channels
 KERNEL_X = 24
-patience = 300                 # if validation loss not going down, wait "patience" number of epochs
+patience = 50                 # if validation loss not going down, wait "patience" number of epochs
 accuracy = 0
 MaxCredit = -800
+
+LR_MIN = 0.000005
+LR_MAX = 0.01
 
 CreditVector = np.zeros(RANDOM_STARTS + TRIALS)
 CreditVector = CreditVector - 800
@@ -244,6 +247,8 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
         validation_loader = Data.DataLoader(dataset = dataset.validation_dataset, batch_size = 30, shuffle = True, num_workers = 0, drop_last=True, pin_memory=True)    
         test_loader = Data.DataLoader(dataset = dataset.test_dataset, batch_size = 600, shuffle = True, num_workers = 0, drop_last=True, pin_memory=True)
     
+        flag = True;
+    
         for epoch in range(SCI_EPOCHS):
             loss = None        
             cnn.train().cuda()
@@ -267,9 +272,11 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
                     output = cnn(validation_data)      
                     valid_loss = loss_func(output, validation_target)
                     running_loss += valid_loss.item()
-                epoch_val_loss = running_loss / len(validation_loader)    
-                #if epoch % 100 == 0: 
-                #    print('validation loss:',epoch_val_loss)                  
+                epoch_val_loss = running_loss / len(validation_loader)   
+                 
+                if epoch % 5 == 0: 
+                    SCI_LR, flag = Utillities.variable_learning_rate(SCI_LR, LR_MIN, LR_MAX, 8, flag)
+                    #print('validation loss:',epoch_val_loss)                  
             train_losses = []
             early_stopping(epoch_val_loss, cnn)
         
@@ -353,9 +360,9 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
                  'SCI_MM': (0.001, 0.999), 
                  'SCI_REGULARIZATION': (0, 0.8), 
                  'SCI_EPOCHS': (3000, 3000), 
-                 'SCI_BATCH_SIZE': (120, 190), 
-                 'SCI_DROPOUT': (0.5, 0.7), 
-                 'SCI_L_SECOND': (116, 148), 
+                 'SCI_BATCH_SIZE': (130, 180), 
+                 'SCI_DROPOUT': (0.55, 0.75), 
+                 'SCI_L_SECOND': (110, 140), 
                  'SCI_BN_MOMENTUM': (0.1, 0.1), 
                  'SCI_SGD_MOMENTUM': (0, 0.999), 
                  'SCI_BN_EPS':(0,14.99),
