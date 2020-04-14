@@ -24,7 +24,8 @@ class EarlyStopping:
     def __call__(self, val_loss, model):
 
         score = -val_loss
-
+        #print('best score: ', self.best_score)
+        #print('latest score: ', score)
         if self.best_score is None:
             self.best_score = score
         elif score < self.best_score:
@@ -36,7 +37,7 @@ class EarlyStopping:
             self.best_score = score
             self.save_checkpoint(val_loss, model)
             self.counter = 0
-            print('Saving the Network and Resetting Patience Counter')
+            #print('Saving the Network and Resetting Patience Counter')
 
     def save_checkpoint(self, val_loss, model):
         '''Saves model when validation loss decrease.'''
