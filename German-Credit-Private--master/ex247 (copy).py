@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# best score: 135
+# best score: 309
+
 
 import torch
 import torch.nn as nn
@@ -15,34 +16,38 @@ import numpy as np
 import os
 import cProfile, pstats, io
 from pstats import SortKey
-from random import randint  
+from random import randint
+from Utillities2 import Utillities
+from cnn_model2 import CNN6     
 import matplotlib.pyplot as mp
 #import matplotlib.pyplot as plt
 
-from Utillities7 import Utillities
-from cnn_model7 import CNN6
-from early_stopping4 import EarlyStopping
-from dataset5 import dataset  
 
+
+try:
+    from apex import amp
+    APEX_AVAILABLE = True
+except ModuleNotFoundError:
+    APEX_AVAILABLE = False
+
+#APEX_AVAILABLE = False    
 
 print("PyTorch Version: ",torch.__version__)
 print("Torchvision Version: ",torchvision.__version__)
 
-
-
 if os.path.exists("checkpoint.pt"):
     os.remove("checkpoint.pt")
 
-torch.manual_seed(780)   # reproducible
+torch.manual_seed(2)   # reproducible
 
 OPTIMIZATION_PLUGIN = 'Bayesian' # 'Bayesian' or 'Scikit' or 'GradDescent'
 #Bayesian requires: $ conda install -c conda-forge bayesian-optimization
 
 GET_STATS = False
-GPU_SELECT = 2 # can be 0, 1, 2 (both)
+GPU_SELECT = 0 # can be 0, 1, 2 (both)
 PARALLEL_PROCESSES = 2
-TRIALS = 1000
-RANDOM_STARTS = 1000
+TRIALS = 1
+RANDOM_STARTS = 5000
 LR  = 1e-5                    # learning rate
 SCI_LR =  1e-5
 LR2 = 1e-5
@@ -50,12 +55,9 @@ SCI_MM = 0.5                  # momentum - used only with SGD optimizer
 MM = 0.5
 L_FIRST = 24                  # initial number of channels
 KERNEL_X = 24
-patience = 80                # if validation loss not going down, wait "patience" number of epochs
+patience = 7                 # if validation loss not going down, wait "patience" number of epochs
 accuracy = 0
 MaxCredit = -800
-
-LR_MIN = 0.000005
-LR_MAX = 0.01
 
 CreditVector = np.zeros(RANDOM_STARTS + TRIALS)
 CreditVector = CreditVector - 800
@@ -85,6 +87,9 @@ if GPU_SELECT == 0:
 # In[2]:
 
 
+from early_stopping import EarlyStopping
+from dataset2 import dataset
+
 
 early_stopping = EarlyStopping(patience=patience, verbose=True)  # initialize the early_stopping object
 
@@ -100,20 +105,18 @@ start.record()
 
 if OPTIMIZATION_PLUGIN == 'Bayesian' :
     from bayes_opt import BayesianOptimization
-    #print("BayesianOptimization Version: ",bayes_opt.__version__)
     
     #def black_box_function(x, y):
     def objective(SCI_RELU, SCI_BIAS, SCI_loss_type,
                   SCI_optimizer, SCI_LR, SCI_MM, 
                   SCI_REGULARIZATION, SCI_EPOCHS, SCI_BATCH_SIZE, 
                   SCI_DROPOUT, SCI_L_SECOND, SCI_BN_MOMENTUM, SCI_SGD_MOMENTUM,
-                  SCI_BN_EPS, SCI_BN_STATS, SCI_LAST_LAYER, SCI_ACT_LAYER):
+                  SCI_LINEARITY, SCI_16BITS, SCI_BN_EPS, SCI_BN_STATS, SCI_LAST_LAYER):
         global count, PercentVector, PercentVec, device, MaxCredit
 
         
         SCI_BATCH_SIZE = int(SCI_BATCH_SIZE)   
-        SCI_LAST_LAYER = int(SCI_LAST_LAYER)       
-        SCI_ACT_LAYER =int(SCI_ACT_LAYER)
+        SCI_LAST_LAYER = int(SCI_LAST_LAYER)                  # integer between 4 and 256
         SCI_MM = round(SCI_MM,3)                                # real with three decimals between (0.001, 0.999)
         SCI_LR = round(SCI_LR,5)                                # real with five decimals between(1e-4, 7e-1)            
         SCI_DROPOUT = round(SCI_DROPOUT,2)                      # real with two decimals between (0, 0.4)
@@ -122,8 +125,12 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
         SCI_BN_MOMENTUM = round(SCI_BN_MOMENTUM,2)              # real with two decimals between (0, 0.99)
         SCI_SGD_MOMENTUM = round(SCI_SGD_MOMENTUM,2)            # real with two decimals between (0, 0.99) 
         SCI_loss_type = int(SCI_loss_type)                      # integer between 1 and 3 ('CrossEntropyLoss', 'MultiMarginLoss','NLLLoss')
+        SCI_LINEARITY = int(SCI_LINEARITY)
         SCI_BN_EPS = int(SCI_BN_EPS)
-
+        if SCI_16BITS < 1:
+            BITS = 'O0'
+        else:
+            BITS = 'O2'
             
         if int(SCI_RELU) == 1 :                                 # integer between 1 and 2 ('True', 'False')
             SCI_RELU = True      
@@ -137,38 +144,13 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
         SCI_REGULARIZATION = float(str(SCI_REGULARIZATION))
     
     
-  
         if SCI_BN_EPS == 0:
-            BN_EPS = 5e-6
+            BN_EPS = 1e-4
         if SCI_BN_EPS == 1:
             BN_EPS = 1e-5
         if SCI_BN_EPS == 2:
-            BN_EPS = 5e-6
-        if SCI_BN_EPS == 3:
-            BN_EPS = 1e-6             
-        if SCI_BN_EPS == 4:
-            BN_EPS = 5e-7     
-        if SCI_BN_EPS == 5:
-            BN_EPS = 1e-7
-        if SCI_BN_EPS == 6:
-            BN_EPS = 5e-8
-        if SCI_BN_EPS == 7:
-            BN_EPS = 1e-8
-        if SCI_BN_EPS == 8:
-            BN_EPS = 3e-7             
-        if SCI_BN_EPS == 9:
-            BN_EPS = 8e-7    
-        if SCI_BN_EPS == 10:
-            BN_EPS = 1e-4             
-        if SCI_BN_EPS == 11:
-            BN_EPS = 5e-4    
-        if SCI_BN_EPS == 12:
-            BN_EPS = 8e-6    
-        if SCI_BN_EPS == 13:
-            BN_EPS = 1e-6             
-        if SCI_BN_EPS == 14:
-            BN_EPS = 8e-5                                           
-        print('BN Batch EPS: ', BN_EPS)    
+            BN_EPS = 1e-6
+        print('BN Batch EPS: ', BN_EPS)     
         
         SCI_BN_STATS = int(SCI_BN_STATS)
         if SCI_BN_STATS == 0:
@@ -181,8 +163,8 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
         
         cnn = CNN6(L_FIRST, SCI_L_SECOND, KERNEL_X,
                    SCI_BIAS, SCI_BN_MOMENTUM, SCI_RELU,
-                   SCI_DROPOUT, dataset.CLASSES,
-                   BN_EPS, BN_STATS, SCI_LAST_LAYER, SCI_ACT_LAYER)     
+                   SCI_DROPOUT, dataset.CLASSES, SCI_LINEARITY,
+                   BN_EPS, BN_STATS, SCI_LAST_LAYER)     
 
         optimizer = Utillities.optimization_algorithms(SCI_optimizer,cnn, SCI_LR, SCI_SGD_MOMENTUM,
                                                        SCI_REGULARIZATION)
@@ -196,9 +178,10 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
         if GPU_SELECT == 0:
             cnn.to(device)        
 
-          
-        cnn.apply(CNN6.weights_init2)    
-        #cnn.apply(CNN6.weights_reset)        
+            
+           
+            
+        cnn.apply(CNN6.weights_reset)        
         cnn.share_memory()
      
         loss_func = nn.CrossEntropyLoss()
@@ -211,15 +194,13 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
             if LOSS == 2:
                 loss_func = nn.MultiMarginLoss()
                 print('*********  MMLoss')                               
-            if LOSS == 4:
-                loss_func = nn.CrossEntropyLoss() 
-                print('********* CrossEntropyLoss ')
             if LOSS == 3:
-                loss_func = nn.TripletMarginLoss() 
-                print('********* TripletMarginLoss ')                  
-                                 
+                loss_func = nn.CrossEntropyLoss() 
+                print('********* CrossEntropyLoss ')                 
             return loss_func
-               
+        
+
+        
         MM = float(str(SCI_MM))
 
         LR = float(str(SCI_LR))
@@ -235,35 +216,37 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
     
         loss_type = create_loss(SCI_loss_type)
         
-        #cnn, optimizer = amp.initialize(
-        #   cnn, optimizer, opt_level=BITS, 
-        #   keep_batchnorm_fp32=True, loss_scale="dynamic"
-        #)
+        cnn, optimizer = amp.initialize(
+           cnn, optimizer, opt_level=BITS, 
+           keep_batchnorm_fp32=True, loss_scale="dynamic"
+        )
     
         Utillities.listing(optimizer, SCI_SGD_MOMENTUM, SCI_BN_MOMENTUM, 
                            SCI_L_SECOND, SCI_LR, SCI_RELU, 
                            SCI_BIAS, SCI_loss_type, SCI_REGULARIZATION, 
-                           SCI_BATCH_SIZE, SCI_DROPOUT, SCI_LAST_LAYER, SCI_ACT_LAYER)
+                           SCI_BATCH_SIZE, SCI_DROPOUT, SCI_LINEARITY, SCI_LAST_LAYER)
 
     
         # Data Loader for easy mini-batch return in training
         SCI_BATCH_SIZE = int(SCI_BATCH_SIZE)
         train_loader = Data.DataLoader(dataset = dataset.train_dataset, batch_size = SCI_BATCH_SIZE, shuffle = True, num_workers = 0, drop_last=True, pin_memory=True)
-        validation_loader = Data.DataLoader(dataset = dataset.validation_dataset, batch_size = 30, shuffle = True, num_workers = 0, drop_last=True, pin_memory=True)    
-        test_loader = Data.DataLoader(dataset = dataset.test_dataset, batch_size = 300, shuffle = True, num_workers = 0, drop_last=True, pin_memory=True)
-    
-        flag = True;
+        validation_loader = Data.DataLoader(dataset = dataset.validation_dataset, batch_size = 144, shuffle = True, num_workers = 0, drop_last=True, pin_memory=True)    
+        test_loader = Data.DataLoader(dataset = dataset.test_dataset, batch_size = 600, shuffle = True, num_workers = 0, drop_last=True, pin_memory=True)
     
         for epoch in range(SCI_EPOCHS):
             loss = None        
             cnn.train().cuda()
             for step, (train_data, train_target) in enumerate(train_loader):   
                 train_data, train_target = train_data.to(device), train_target.to(device)
-                output = cnn(train_data)                # forward pass: compute predicted outputs by passing inputs to the model     
+                output, temp = cnn(train_data)                # forward pass: compute predicted outputs by passing inputs to the model     
                 loss = loss_func(output, train_target)
                 train_losses.append(loss.item())
-                #batch_loss.backward()
-                loss.backward()                               # backward pass: compute gradient of the loss with respect to model parameters
+                if APEX_AVAILABLE:
+                    with amp.scale_loss(loss, optimizer) as scaled_loss:
+                        scaled_loss.backward()
+                else:
+                    #batch_loss.backward()
+                    loss.backward()                               # backward pass: compute gradient of the loss with respect to model parameters
                 optimizer.zero_grad()
                 optimizer.step()                              # perform a single optimization step (parameter update)
       
@@ -274,17 +257,16 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
             with torch.no_grad():
                 for step, (validation_data, validation_target) in enumerate(validation_loader):
                     validation_data, validation_target = validation_data.to(device), validation_target.to(device)
-                    output = cnn(validation_data)      
-                    valid_loss = loss_func(output, validation_target)
-                    running_loss += valid_loss.item()
-                epoch_val_loss = running_loss / len(validation_loader)   
+                    output, temp = cnn(validation_data)            # forward pass: compute predicted outputs by passing inputs to the model
+                    valid_loss += loss_func(output, validation_target).item()
+                running_loss += valid_loss
+                if epoch % 100 == 0: 
+                    print('average loss: %.6f' %(running_loss))
+                    running_loss = 0.0
                    
-                if epoch % 3 == 0: 
-                    SCI_LR, flag = Utillities.variable_learning_rate(SCI_LR, LR_MIN, LR_MAX, 3, flag)
-                    #SCI_DROPOUT = SCI_DROPOUT / 1.03
-            early_stopping(epoch_val_loss, cnn)        #print('validation loss:',epoch_val_loss)                
             train_losses = []
-                    
+            early_stopping(valid_loss, cnn)
+        
             if early_stopping.early_stop:
                 if os.path.exists('checkpoint.pt'):
                     #cnn = TheModelClass(*args, **kwargs)
@@ -292,14 +274,14 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
                     cnn.load_state_dict(torch.load('checkpoint.pt'))  # Choose whatever GPU device number you want
                     cnn.to(device)
                 break
-            running_loss = 0.0
+      
         cnn.eval()
         class_correct = list(0. for i in range(1000))
         class_total = list(0. for i in range(1000))
         with torch.no_grad():
             for (test_data, test_target) in test_loader:
                 test_data, test_target = test_data.to(device), test_target.to(device)
-                outputs = cnn(test_data)
+                outputs, temp = cnn(test_data)
                 _, predicted = torch.max(outputs, 1)
                 c = (predicted == test_target).squeeze()
                 dx = ((c.cpu()).numpy()).astype(int)
@@ -333,8 +315,8 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
 
         print()
         print()
-        #print('Credit Cost: ',CreditCost)
-        CreditCost = CreditCost + (SCI_SGD_MOMENTUM + SCI_DROPOUT + SCI_BATCH_SIZE + SCI_L_SECOND + SCI_optimizer + SCI_loss_type+ SCI_LR+ SCI_BN_EPS+SCI_BN_STATS+SCI_LAST_LAYER+SCI_ACT_LAYER)/10000
+        print('Credit Cost: ',CreditCost)
+        CreditCost = CreditCost + (SCI_SGD_MOMENTUM + SCI_DROPOUT + SCI_BATCH_SIZE + SCI_L_SECOND + SCI_optimizer + SCI_loss_type+ SCI_LR+SCI_16BITS+ SCI_BN_EPS+SCI_BN_STATS)/10000
         print('Credit Cost: ',CreditCost)
         
         if -CreditCost > MaxCredit : 
@@ -350,30 +332,32 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
         #print(CreditVec, -CreditVector)
         count = count + 1
         # display the plot
-        #mp.show()       
+        #mp.show()
+             
         return CreditCost
     
     
     optimizer = BayesianOptimization(
         f=objective,
         #pbounds=pbounds,
-        pbounds={'SCI_RELU': (1,1.99), 
-                 'SCI_BIAS': (1,1.99), 
-                 'SCI_loss_type': (2, 2.99), 
-                 'SCI_optimizer': (9, 9.99),
-                 'SCI_LR': (0.00002, 0.01), 
+        pbounds={'SCI_RELU': (1,2.99), 
+                 'SCI_BIAS': (1,2.99), 
+                 'SCI_loss_type': (1, 3.99), 
+                 'SCI_optimizer': (1, 9.99),
+                 'SCI_LR': (0.00001, 0.001), 
                  'SCI_MM': (0.001, 0.999), 
-                 'SCI_REGULARIZATION': (0, 0.8), 
-                 'SCI_EPOCHS': (1000, 1000), 
-                 'SCI_BATCH_SIZE': (150, 256), 
-                 'SCI_DROPOUT': (0.45, 0.85), 
-                 'SCI_L_SECOND': (70, 190), 
-                 'SCI_BN_MOMENTUM': (0.1, 0.1), 
+                 'SCI_REGULARIZATION': (0, 0.9), 
+                 'SCI_EPOCHS': (1000, 2000), 
+                 'SCI_BATCH_SIZE': (2, 256), 
+                 'SCI_DROPOUT': (0, 0.8), 
+                 'SCI_L_SECOND': (2, 256), 
+                 'SCI_BN_MOMENTUM': (0, 0.1), 
                  'SCI_SGD_MOMENTUM': (0, 0.999), 
-                 'SCI_BN_EPS':(0,14.99),
-                 'SCI_BN_STATS':(0,0.99),
-                 'SCI_LAST_LAYER':(1,1.99),
-                 'SCI_ACT_LAYER':(2,2.99)
+                 'SCI_LINEARITY': (1,3.99),
+                 'SCI_16BITS': (0,1.99),
+                 'SCI_BN_EPS':(0,2.99),
+                 'SCI_BN_STATS':(0,1.99),
+                 'SCI_LAST_LAYER':(1,4.99)
                 },
         verbose=2, # verbose = 1 prints only when a maximum is observed, verbose = 0 is silent
         random_state=1,

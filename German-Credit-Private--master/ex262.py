@@ -360,7 +360,7 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
         pbounds={'SCI_RELU': (1,1.99), 
                  'SCI_BIAS': (1,1.99), 
                  'SCI_loss_type': (2, 2.99), 
-                 'SCI_optimizer': (9, 9.99),
+                 'SCI_optimizer': (1, 8.99),
                  'SCI_LR': (0.00002, 0.01), 
                  'SCI_MM': (0.001, 0.999), 
                  'SCI_REGULARIZATION': (0, 0.8), 

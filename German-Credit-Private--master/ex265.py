@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# best score: 135
+# best score: 133
 
 import torch
 import torch.nn as nn
@@ -41,8 +41,8 @@ OPTIMIZATION_PLUGIN = 'Bayesian' # 'Bayesian' or 'Scikit' or 'GradDescent'
 GET_STATS = False
 GPU_SELECT = 2 # can be 0, 1, 2 (both)
 PARALLEL_PROCESSES = 2
-TRIALS = 1000
-RANDOM_STARTS = 1000
+TRIALS = 200
+RANDOM_STARTS = 200
 LR  = 1e-5                    # learning rate
 SCI_LR =  1e-5
 LR2 = 1e-5
@@ -50,12 +50,12 @@ SCI_MM = 0.5                  # momentum - used only with SGD optimizer
 MM = 0.5
 L_FIRST = 24                  # initial number of channels
 KERNEL_X = 24
-patience = 80                # if validation loss not going down, wait "patience" number of epochs
+patience = 1500                # if validation loss not going down, wait "patience" number of epochs
 accuracy = 0
 MaxCredit = -800
 
-LR_MIN = 0.000005
-LR_MAX = 0.01
+LR_MIN = 0.0001
+LR_MAX = 0.2
 
 CreditVector = np.zeros(RANDOM_STARTS + TRIALS)
 CreditVector = CreditVector - 800
@@ -360,14 +360,14 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
         pbounds={'SCI_RELU': (1,1.99), 
                  'SCI_BIAS': (1,1.99), 
                  'SCI_loss_type': (2, 2.99), 
-                 'SCI_optimizer': (9, 9.99),
-                 'SCI_LR': (0.00002, 0.01), 
+                 'SCI_optimizer': (4, 8.99),
+                 'SCI_LR': (0.0001, 0.2), 
                  'SCI_MM': (0.001, 0.999), 
                  'SCI_REGULARIZATION': (0, 0.8), 
-                 'SCI_EPOCHS': (1000, 1000), 
-                 'SCI_BATCH_SIZE': (150, 256), 
+                 'SCI_EPOCHS': (7000, 7000), 
+                 'SCI_BATCH_SIZE': (196, 312), 
                  'SCI_DROPOUT': (0.45, 0.85), 
-                 'SCI_L_SECOND': (70, 190), 
+                 'SCI_L_SECOND': (64, 150), 
                  'SCI_BN_MOMENTUM': (0.1, 0.1), 
                  'SCI_SGD_MOMENTUM': (0, 0.999), 
                  'SCI_BN_EPS':(0,14.99),
