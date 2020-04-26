@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# best score: 131
+# best score: 123
 
 import torch
 import torch.nn as nn
@@ -20,7 +20,7 @@ import matplotlib.pyplot as mp
 #import matplotlib.pyplot as plt
 
 from Utillities7 import Utillities
-from cnn_model7 import CNN6
+from cnn_model8 import CNN6
 from early_stopping4 import EarlyStopping
 from dataset5 import dataset  
 
@@ -41,8 +41,8 @@ OPTIMIZATION_PLUGIN = 'Bayesian' # 'Bayesian' or 'Scikit' or 'GradDescent'
 GET_STATS = False
 GPU_SELECT = 2 # can be 0, 1, 2 (both)
 PARALLEL_PROCESSES = 2
-TRIALS = 200
-RANDOM_STARTS = 200
+TRIALS = 480
+RANDOM_STARTS = 20
 LR  = 1e-5                    # learning rate
 SCI_LR =  1e-5
 LR2 = 1e-5
@@ -50,7 +50,7 @@ SCI_MM = 0.5                  # momentum - used only with SGD optimizer
 MM = 0.5
 L_FIRST = 24                  # initial number of channels
 KERNEL_X = 24
-patience = 50                # if validation loss not going down, wait "patience" number of epochs
+patience = 7                # if validation loss not going down, wait "patience" number of epochs
 accuracy = 0
 MaxCredit = -800
 
@@ -281,7 +281,7 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
                    
                 if epoch % 3 == 0: 
                     SCI_LR, flag = Utillities.variable_learning_rate(SCI_LR, LR_MIN, LR_MAX, 3, flag)
-                    #SCI_DROPOUT = SCI_DROPOUT / 1.03
+                    SCI_DROPOUT = SCI_DROPOUT / 1.02
             early_stopping(epoch_val_loss, cnn)        #print('validation loss:',epoch_val_loss)                
             train_losses = []
                     
@@ -331,15 +331,16 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
         if os.path.exists('checkpoint.pt'):  
             os.remove('checkpoint.pt') 
 
-        print()
-        print()
+
         #print('Credit Cost: ',CreditCost)
-        CreditCost = CreditCost + (SCI_SGD_MOMENTUM + SCI_DROPOUT + SCI_BATCH_SIZE + SCI_L_SECOND + SCI_optimizer + SCI_loss_type+ SCI_LR+ SCI_BN_EPS+SCI_BN_STATS+SCI_LAST_LAYER+SCI_ACT_LAYER)/10000
+        #CreditCost = CreditCost + (SCI_SGD_MOMENTUM + SCI_DROPOUT + SCI_BATCH_SIZE + SCI_L_SECOND + SCI_optimizer + SCI_loss_type+ SCI_LR+ SCI_BN_EPS+SCI_BN_STATS+SCI_LAST_LAYER+SCI_ACT_LAYER)/10000
         print('Credit Cost: ',CreditCost)
         
         if -CreditCost > MaxCredit : 
             MaxCredit = -CreditCost
         print('Best Score So Far: ',MaxCredit)   
+        print()
+        print()
         
         CreditVector[count] = MaxCredit    
         CreditVec[count] = count
@@ -390,8 +391,9 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
         init_points = RANDOM_STARTS,
         n_iter = TRIALS,
         #acq="ucb", kappa=0.1
-        alpha=1e-3, n_restarts_optimizer=3
+        #alpha=1e-3, n_restarts_optimizer=3
         #acq="ei", xi=1e-4
+        kappa=5
     )
     
     
