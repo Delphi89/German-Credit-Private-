@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# best score: 119
+# best score: 137
 
 import torch
 import torch.nn as nn
@@ -33,7 +33,7 @@ print("Torchvision Version: ",torchvision.__version__)
 if os.path.exists("checkpoint.pt"):
     os.remove("checkpoint.pt")
 
-torch.manual_seed(67578)   # reproducible
+torch.manual_seed(2342)   # reproducible
 
 OPTIMIZATION_PLUGIN = 'Bayesian' # 'Bayesian' or 'Scikit' or 'GradDescent'
 #Bayesian requires: $ conda install -c conda-forge bayesian-optimization
@@ -41,8 +41,8 @@ OPTIMIZATION_PLUGIN = 'Bayesian' # 'Bayesian' or 'Scikit' or 'GradDescent'
 GET_STATS = False
 GPU_SELECT = 2 # can be 0, 1, 2 (both)
 PARALLEL_PROCESSES = 2
-TRIALS = 100
-RANDOM_STARTS = 100
+TRIALS = 180
+RANDOM_STARTS = 20
 LR  = 1e-5                    # learning rate
 SCI_LR =  1e-5
 LR2 = 1e-5
@@ -50,7 +50,7 @@ SCI_MM = 0.5                  # momentum - used only with SGD optimizer
 MM = 0.5
 L_FIRST = 24                  # initial number of channels
 KERNEL_X = 24
-patience = 30                # if validation loss not going down, wait "patience" number of epochs
+patience = 25                # if validation loss not going down, wait "patience" number of epochs
 accuracy = 10
 MaxCredit = -800
 
@@ -370,13 +370,13 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
                  'SCI_BIAS': (1,1.99), 
                  'SCI_loss_type': (2, 2.99), 
                  'SCI_optimizer': (4, 4.99),
-                 'SCI_LR': (0.23679, 0.23679), 
+                 'SCI_LR': (0.23, 0.24), 
                  'SCI_MM': (0.001, 0.999), 
-                 'SCI_REGULARIZATION': (0.06542977515465478, 0.06542977515465478), 
+                 'SCI_REGULARIZATION': (0.06, 0.07), 
                  'SCI_EPOCHS': (7000, 7000), 
                  'SCI_BATCH_SIZE': (239, 239), 
                  'SCI_DROPOUT': (0.85, 0.85), 
-                 'SCI_L_SECOND': (110, 110), 
+                 'SCI_L_SECOND': (100, 130), 
                  'SCI_BN_MOMENTUM': (0.1, 0.1), 
                  'SCI_SGD_MOMENTUM': (0, 0.999), 
                  'SCI_BN_EPS':(12,12.99),
@@ -386,6 +386,7 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
                 },
         verbose=2, # verbose = 1 prints only when a maximum is observed, verbose = 0 is silent
         random_state=1,
+
     )
         
 
@@ -398,10 +399,28 @@ if OPTIMIZATION_PLUGIN == 'Bayesian' :
     optimizer.maximize(
         init_points = RANDOM_STARTS,
         n_iter = TRIALS,
-        #acq="ucb", kappa=0.1
+        acq = "ei", 
+        xi=1e-4        
+        #Acquisition function type to be used. Can be "ucb", "ei" or "poi".
+        # ucb Gaussian Process Upper Confidence Bound
+        # ei Expected Improvement
+        # poi Probability of Improvement
+        
+
+        
+        # eps tunable parameter epsilon of Expected Improvement and Probability of Improvement 
+        # balance exploitation against exploration, increasing epsilon will
+        # make the optimized hyperparameters are more spread out across the whole range.
+        
+        
+        
         #alpha=1e-3, n_restarts_optimizer=3
         #acq="ei", xi=1e-4
-        kappa=5
+        
+        # tunable parameter kappa of GP Upper Confidence Bound,
+        # balance exploitation against exploration, increasing kappa 
+        # will make the optimized hyperparameters pursuing exploration
+        # kappa=5 
     )
     
     
